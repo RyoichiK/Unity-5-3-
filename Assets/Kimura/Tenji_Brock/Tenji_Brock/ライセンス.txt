@@ -1,0 +1,26 @@
+◆ライセンス
+
+1.本ソフトウェアを無制限に扱うことを無償で許可します。
+
+2.本ソフトウェアは商用利用にはご利用頂けません。
+
+3.購入した製品を再販、再配布する事を固く禁止致します。
+
+4. 本ソフトウェアの使用またはその他の扱いによって生じる一切の請求、損害、その他の義務について何らの責任も負わないものとします。
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+◆ License
+
+1. We allow unlimited use of this software free of charge.
+
+2. This software cannot be used for commercial use.
+
+3. It is strictly prohibited to resell or redistribute the purchased product.
+
+4. We shall not be liable for any claims, damages or other obligations arising from the use or other handling of this software.
