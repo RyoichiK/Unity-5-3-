@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
-
-#if UNITY_EDITOR
-using UnityEditor;  // Playモード終了用
-#endif
 
 public class CompassLogger_WithBrailleFlag : MonoBehaviour
 {
@@ -24,6 +20,8 @@ public class CompassLogger_WithBrailleFlag : MonoBehaviour
     private List<string> logLines = new List<string>();
     private int frameCount = 0;
 
+    private bool isLogging = false; // ← 追加：Qキーが押されるまでログ開始しない
+
     void Start()
     {
         logLines.Add("Frame,Time,Angle,BrailleFlag,PosX,PosY,PosZ,RotX,RotY,RotZ");
@@ -31,19 +29,30 @@ public class CompassLogger_WithBrailleFlag : MonoBehaviour
 
     void Update()
     {
-        float rawAngle = compassImage.eulerAngles.z;
-        float angle = NormalizeAngle180(rawAngle);
-        float time = Time.time;
+        // Qキーで記録を開始
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            isLogging = true;
+            Debug.Log("🟢 ログ記録を開始しました");
+        }
 
-        int brailleFlag = isPersonInBrailleBlock ? 1 : 0;
+        if (isLogging)
+        {
+            float rawAngle = compassImage.eulerAngles.z;
+            float angle = NormalizeAngle180(rawAngle);
+            float time = Time.time;
 
-        Vector3 pos = trackedTarget != null ? trackedTarget.position : Vector3.zero;
-        Vector3 rot = trackedTarget != null ? trackedTarget.eulerAngles : Vector3.zero;
+            int brailleFlag = isPersonInBrailleBlock ? 1 : 0;
 
-        logLines.Add($"{frameCount},{time:F3},{angle:F2},{brailleFlag},{pos.x:F3},{pos.y:F3},{pos.z:F3},{rot.x:F2},{rot.y:F2},{rot.z:F2}");
+            Vector3 pos = trackedTarget != null ? trackedTarget.position : Vector3.zero;
+            Vector3 rot = trackedTarget != null ? trackedTarget.eulerAngles : Vector3.zero;
+
+            logLines.Add($"{frameCount},{time:F3},{angle:F2},{brailleFlag},{pos.x:F3},{pos.y:F3},{pos.z:F3},{rot.x:F2},{rot.y:F2},{rot.z:F2}");
+        }
 
         frameCount++;
 
+        // Rキーで保存
         if (Input.GetKeyDown(KeyCode.R))
         {
             SaveToCSV();
