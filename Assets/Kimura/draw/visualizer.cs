@@ -36,6 +36,9 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
     public List<SplineContainer> braillePolygons;
     public float brailleForwardDistance = 10f;
 
+    [Header("路面エリア")]
+    public List<SplineContainer> roadPolygons;
+
     [Header("ログ連携")]
     public CompassLogger_WithBrailleFlag compassLogger;
 
@@ -43,9 +46,11 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
     private Texture2D energyTexture;
     private float[,] energyBuffer;
-    private bool[,] maskCache;
+    private bool[,] sidewalkCache;
+    private bool[,] roadCache;
     private List<Vector2[]> sidewalkPointsList;
     private List<Vector2[]> braillePointsList;
+    private List<Vector2[]> roadPointsList;
 
     private Vector3 planeCenter;
     private float planeSizeX;
@@ -57,7 +62,6 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         planeSizeX = targetRenderer.bounds.size.x;
         planeSizeZ = targetRenderer.bounds.size.z;
 
-        // マテリアルのShaderをUnlit/Transparentに設定（重要）
         targetRenderer.material.shader = Shader.Find("Unlit/Transparent");
 
         energyTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
@@ -70,14 +74,18 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
         sidewalkPointsList = CachePolygonPoints(sidewalkPolygons);
         braillePointsList = CachePolygonPoints(braillePolygons);
+        roadPointsList = CachePolygonPoints(roadPolygons);
 
-        maskCache = new bool[textureSize, textureSize];
+        sidewalkCache = new bool[textureSize, textureSize];
+        roadCache = new bool[textureSize, textureSize];
+
         for (int y = 0; y < textureSize; y++)
         {
             for (int x = 0; x < textureSize; x++)
             {
                 Vector2 worldXY = PixelToWorld(x, y);
-                maskCache[x, y] = IsInsideAnyPolygon(worldXY, sidewalkPointsList);
+                sidewalkCache[x, y] = IsInsideAnyPolygon(worldXY, sidewalkPointsList);
+                roadCache[x, y] = IsInsideAnyPolygon(worldXY, roadPointsList);
             }
         }
     }
@@ -93,6 +101,9 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         energyBuffer = new float[textureSize, textureSize];
 
         bool anyPersonInBrailleBlock = false;
+
+        Camera targetCamera = cameraTransform.GetComponent<Camera>();
+        bool isSolidColor = targetCamera != null && targetCamera.clearFlags == CameraClearFlags.SolidColor;
 
         foreach (Transform person in people)
         {
@@ -135,7 +146,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
             {
                 for (int x = 0; x < textureSize; x++)
                 {
-                    if (!maskCache[x, y]) continue;
+                    if (!sidewalkCache[x, y]) continue; // 歩道エリアのみ描写
 
                     Vector2 pos = new Vector2(x, y);
                     Vector2 rel = pos - apex;
@@ -165,7 +176,13 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
             for (int x = 0; x < textureSize; x++)
             {
                 int idx = y * textureSize + x;
-                if (!maskCache[x, y])
+                if (roadCache[x, y])
+                {
+                    pixels[idx] = new Color(0.5f, 0.5f, 0.5f, 1f);
+                    continue;
+                }
+
+                if (!sidewalkCache[x, y])
                 {
                     pixels[idx] = new Color(0f, 0f, 1f, 0f);
                     continue;
@@ -178,7 +195,8 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
                 else
                     baseColor = Color.Lerp(new Color(1f, 0.5f, 0f), Color.red, (energy - 0.5f) * 2f);
 
-                float alpha = energy > 0f ? energy * alphaMax : 0.2f;
+                float alpha = isSolidColor ? 1f : (energy > 0f ? energy * alphaMax : 0.2f);
+
                 pixels[idx] = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
             }
         }
