@@ -62,7 +62,7 @@ public class TrajectoryPlayer : MonoBehaviour
 
     void LoadCSV()
     {
-        string path = Path.Combine(Application.dataPath, csvFileName);
+        string path = Path.Combine(Application.streamingAssetsPath, csvFileName);
         if (!File.Exists(path))
         {
             Debug.LogError($"❌ CSVファイルが見つかりません: {path}");

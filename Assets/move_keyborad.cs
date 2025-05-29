@@ -2,19 +2,23 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5.0f; // 移動速度
-    public float rotationSpeed = 700.0f; // 回転速度
+    public float moveSpeed = 5.0f;
+    public float rotationSpeed = 10.0f;
+
+    private float currentMove = 0f;
+    private float currentTurn = 0f;
+    public float smoothTime = 0.1f; // スムージングの速さ
 
     void Update()
     {
-        // キーボード入力を取得
-        float moveDirection = -Input.GetAxis("Vertical"); // 前後移動（逆にするためにマイナスを掛ける）
-        float turnDirection = Input.GetAxis("Horizontal"); // 左右回転
+        float targetMove = -Input.GetAxisRaw("Vertical");
+        float targetTurn = Input.GetAxisRaw("Horizontal");
 
-        // 移動処理
-        transform.Translate(Vector3.right * moveDirection * moveSpeed * Time.deltaTime);
+        // 徐々に滑らかに値を補正する
+        currentMove = Mathf.Lerp(currentMove, targetMove, Time.deltaTime / smoothTime);
+        currentTurn = Mathf.Lerp(currentTurn, targetTurn, Time.deltaTime / smoothTime);
 
-        // 回転処理
-        transform.Rotate(Vector3.up, turnDirection * rotationSpeed * Time.deltaTime);
+        transform.Translate(Vector3.right * currentMove * moveSpeed * Time.deltaTime);
+        transform.Rotate(Vector3.up, currentTurn * rotationSpeed * Time.deltaTime);
     }
 }

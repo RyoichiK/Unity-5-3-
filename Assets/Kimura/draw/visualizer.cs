@@ -90,9 +90,17 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         }
     }
 
+    private float updateInterval = 0.1f; // 0.1•b‚²‚Æi10fps‘Š“–j
+    private float timeSinceLastUpdate = 0f;
+
     void Update()
     {
-        DrawEnergyMap();
+        timeSinceLastUpdate += Time.deltaTime;
+        if (timeSinceLastUpdate >= updateInterval)
+        {
+            DrawEnergyMap();
+            timeSinceLastUpdate = 0f;
+        }
     }
 
     void DrawEnergyMap()
