@@ -1,17 +1,17 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Splines;
 
 public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 {
-    [Header("•`‰æ‘ÎÛ")]
+    [Header("æç”»å¯¾è±¡")]
     public Renderer targetRenderer;
     public List<Transform> people;
 
-    [Header("ƒeƒNƒXƒ`ƒƒİ’è")]
+    [Header("ãƒ†ã‚¯ã‚¹ãƒãƒ£è¨­å®š")]
     public int textureSize = 512;
 
-    [Header("ƒGƒlƒ‹ƒM[•`‰æƒpƒ‰ƒ[ƒ^")]
+    [Header("ã‚¨ãƒãƒ«ã‚®ãƒ¼æç”»ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿")]
     public float sigma = 20f;
     public float gamma = 0.8f;
     public float beta = 0.6f;
@@ -19,27 +19,27 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
     public float alphaMax = 1.0f;
     public float maxDistance = 30f;
 
-    [Header("ƒJƒƒ‰‹——£§ŒÀ")]
+    [Header("ã‚«ãƒ¡ãƒ©è·é›¢åˆ¶é™")]
     public Transform cameraTransform;
     public float cameraRangeXZ = 30f;
 
-    [Header("“®“I•`ÊŠp“x")]
+    [Header("å‹•çš„æå†™è§’åº¦")]
     public float angleMin = 60f;
     public float angleMax = 120f;
     public float distMin = 5f;
     public float distMax = 13f;
 
-    [Header("•à“¹ƒGƒŠƒA")]
+    [Header("æ­©é“ã‚¨ãƒªã‚¢")]
     public List<SplineContainer> sidewalkPolygons;
 
-    [Header("“_šƒuƒƒbƒNƒGƒŠƒA")]
+    [Header("ç‚¹å­—ãƒ–ãƒ­ãƒƒã‚¯ã‚¨ãƒªã‚¢")]
     public List<SplineContainer> braillePolygons;
     public float brailleForwardDistance = 10f;
 
-    [Header("˜H–ÊƒGƒŠƒA")]
+    [Header("è·¯é¢ã‚¨ãƒªã‚¢")]
     public List<SplineContainer> roadPolygons;
 
-    [Header("ƒƒO˜AŒg")]
+    [Header("ãƒ­ã‚°é€£æº")]
     public CompassLogger_WithBrailleFlag compassLogger;
 
     public int polygonSampleCount = 300;
@@ -90,7 +90,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         }
     }
 
-    private float updateInterval = 0.1f; // 0.1•b‚²‚Æi10fps‘Š“–j
+    private float updateInterval = 0.1f; // 0.1ç§’ã”ã¨ï¼ˆ10fpsç›¸å½“ï¼‰
     private float timeSinceLastUpdate = 0f;
 
     void Update()
@@ -113,12 +113,25 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         Camera targetCamera = cameraTransform.GetComponent<Camera>();
         bool isSolidColor = targetCamera != null && targetCamera.clearFlags == CameraClearFlags.SolidColor;
 
+        Vector2 cameraXZ = new Vector2(cameraTransform.position.x, cameraTransform.position.z);
+        Vector2 cameraForwardXZ = new Vector2(cameraTransform.forward.x, cameraTransform.forward.z).normalized;
+
         foreach (Transform person in people)
         {
             Vector2 personXZ = new Vector2(person.position.x, person.position.z);
-            Vector2 cameraXZ = new Vector2(cameraTransform.position.x, cameraTransform.position.z);
+            Vector2 toPerson = (personXZ - cameraXZ).normalized;
             float dist = Vector2.Distance(personXZ, cameraXZ);
-            if (dist > cameraRangeXZ) continue;
+
+            // âœ… ã‚«ãƒ¡ãƒ©ã‹ã‚‰ä¸€å®šè·é›¢å†…ã‹ã¤å‰æ–¹æ–¹å‘ã®ã¿æå†™ï¼ˆå‰æ–¹ç´„60åº¦ä»¥å†… = cosÎ¸ > 0.5ï¼‰
+            //float forwardDot = Vector2.Dot(cameraForwardXZ, toPerson);
+
+            //if (dist > cameraRangeXZ || forwardDot < 0f) continue;  // â† ã“ã‚Œã§å‰æ–¹180åº¦ã®ã¿å¯¾è±¡
+            float forwardDot = Vector2.Dot(cameraForwardXZ, toPerson);
+            float forwardAngleThreshold = Mathf.Cos(70f * Mathf.Deg2Rad);  // â‰ˆ 0.3420
+            if (dist > cameraRangeXZ || forwardDot < forwardAngleThreshold) continue;
+
+
+
 
             float dynamicAngle = Mathf.Lerp(angleMin, angleMax, Mathf.InverseLerp(distMin, distMax, dist));
 
@@ -141,8 +154,8 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
                         Vector2 rel = worldXY - personXZ;
                         float d = rel.magnitude;
-                        float forwardDot = Vector2.Dot(dir.normalized, rel.normalized);
-                        if (d <= brailleForwardDistance && Mathf.Abs(forwardDot) > 0.8f)
+                        float brailleDot = Vector2.Dot(dir.normalized, rel.normalized);
+                        if (d <= brailleForwardDistance && Mathf.Abs(brailleDot) > 0.8f)
                         {
                             energyBuffer[x, y] = 1.0f;
                         }
@@ -154,7 +167,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
             {
                 for (int x = 0; x < textureSize; x++)
                 {
-                    if (!sidewalkCache[x, y]) continue; // •à“¹ƒGƒŠƒA‚Ì‚İ•`Ê
+                    if (!sidewalkCache[x, y]) continue;
 
                     Vector2 pos = new Vector2(x, y);
                     Vector2 rel = pos - apex;
@@ -204,7 +217,6 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
                     baseColor = Color.Lerp(new Color(1f, 0.5f, 0f), Color.red, (energy - 0.5f) * 2f);
 
                 float alpha = isSolidColor ? 1f : (energy > 0f ? energy * alphaMax : 0.2f);
-
                 pixels[idx] = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
             }
         }
@@ -212,6 +224,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
         energyTexture.SetPixels(pixels);
         energyTexture.Apply();
     }
+
 
     List<Vector2[]> CachePolygonPoints(List<SplineContainer> containers)
     {
