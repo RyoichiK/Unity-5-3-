@@ -127,7 +127,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
             //if (dist > cameraRangeXZ || forwardDot < 0f) continue;  // ← これで前方180度のみ対象
             float forwardDot = Vector2.Dot(cameraForwardXZ, toPerson);
-            float forwardAngleThreshold = Mathf.Cos(70f * Mathf.Deg2Rad);  // ≈ 0.3420
+            float forwardAngleThreshold = Mathf.Cos(50f * Mathf.Deg2Rad);  // ≈ 0.3420
             if (dist > cameraRangeXZ || forwardDot < forwardAngleThreshold) continue;
 
 
