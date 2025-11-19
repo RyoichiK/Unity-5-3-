@@ -58,10 +58,11 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
     void Start()
     {
+        
         planeCenter = targetRenderer.bounds.center;
         planeSizeX = targetRenderer.bounds.size.x;
         planeSizeZ = targetRenderer.bounds.size.z;
-
+        Debug.Log($"1px ≈ {planeSizeX / textureSize:F4} m,  maxDistance={maxDistance}px ≈ {(planeSizeX / textureSize) * maxDistance:F2} m");
         targetRenderer.material.shader = Shader.Find("Unlit/Transparent");
 
         energyTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
@@ -127,7 +128,7 @@ public class EnergyMapDrawer_BrailleHighlight_FrontBack10m : MonoBehaviour
 
             //if (dist > cameraRangeXZ || forwardDot < 0f) continue;  // ← これで前方180度のみ対象
             float forwardDot = Vector2.Dot(cameraForwardXZ, toPerson);
-            float forwardAngleThreshold = Mathf.Cos(50f * Mathf.Deg2Rad);  // ≈ 0.3420
+            float forwardAngleThreshold = Mathf.Cos(43f * Mathf.Deg2Rad);  // ≈ 0.3420
             if (dist > cameraRangeXZ || forwardDot < forwardAngleThreshold) continue;
 
 
